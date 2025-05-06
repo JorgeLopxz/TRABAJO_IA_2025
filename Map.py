@@ -52,6 +52,41 @@ class Map:
             locations[i] = self.radars[i].location.to_numpy()
         return locations
     
+    
     def compute_detection_map(self) -> np.array:
         """ Computes the detection map for each coordinate in the map (with all the radars) """
-        ...
+        lat_range = np.linspace(self.boundaries.min_lat, self.boundaries.max_lat, self.height)
+        lon_range = np.linspace(self.boundaries.min_lon, self.boundaries.max_lon, self.width)
+
+        detection_map = np.zeros((self.height, self.width), dtype=np.float32)
+
+        for i in tqdm(range(self.height), desc="Computing detection map"):
+            for j in range(self.width):
+                lat, lon = lat_range[i], lon_range[j]
+                max_psi = 0.0
+
+                for radar in self.radars:
+                    R_max = radar.compute_max_range()
+                    d = 111000 * np.sqrt((lat - radar.location.latitude)**2 + (lon - radar.location.longitude)**2)
+                    if d > R_max:
+                        continue
+
+                    mu = np.array([radar.location.latitude, radar.location.longitude])
+                    x = np.array([lat, lon])
+                    sigma = radar.covariance
+                    sigma_inv = np.linalg.inv(sigma)
+                    sigma_det = np.linalg.det(sigma)
+
+                    diff = (x - mu).reshape(1, -1)
+                    exponent = -0.5 * (diff @ sigma_inv @ diff.T)[0][0]
+                    psi = 1.0 / (2 * np.pi * np.sqrt(sigma_det)) * np.exp(exponent)
+
+                    if psi > max_psi:
+                        max_psi = psi
+
+                detection_map[i, j] = max_psi
+
+        min_val = np.min(detection_map)
+        max_val = np.max(detection_map)
+        scaled = ((detection_map - min_val) / (max_val - min_val)) * (1 - 1e-4) + 1e-4
+        return scaled
