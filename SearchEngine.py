@@ -66,7 +66,7 @@ def path_finding(G: nx.DiGraph,
                  boundaries: Boundaries,
                  map_width: np.int32,
                  map_height: np.int32) -> tuple:
-    """ Implementation of the main searching / path finding algorithm """
+    """ Unified implementation of the main searching / path finding algorithm """
     plan = []
     total_cost = 0.0
 
@@ -86,30 +86,4 @@ def compute_path_cost(G: nx.DiGraph, solution_plan: list) -> np.float32:
     for i in range(len(solution_plan) - 1):
         u, v = solution_plan[i], solution_plan[i + 1]
         total_cost += G[u][v]['weight']
-    return total_cost
-
-
-def path_finding(G: nx.DiGraph,
-                 heuristic_function,
-                 locations: np.array, 
-                 initial_location_index: np.int32, 
-                 boundaries: Boundaries,
-                 map_width: np.int32,
-                 map_height: np.int32) -> tuple:
-    """ Implementation of the main searching / path finding algorithm """
-    plan = []
-    for i in range(initial_location_index, len(locations) - 1):
-        origin = tuple(locations[i])
-        goal = tuple(locations[i + 1])
-        subplan = nx.astar_path(G, source=origin, target=goal, heuristic=lambda a, b: heuristic_function(a, b), weight='weight')
-        plan.extend(subplan if i == initial_location_index else subplan[1:])
-    return plan
-
-def compute_path_cost(G: nx.DiGraph, solution_plan: list) -> np.float32:
-    """ Computes the total cost of the whole planning solution """
-    total_cost = 0.0
-    for i in range(len(solution_plan) - 1):
-        current = solution_plan[i]
-        nxt = solution_plan[i + 1]
-        total_cost += G.edges[current, nxt]['weight']
     return total_cost

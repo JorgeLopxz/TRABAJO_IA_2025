@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
-            "args": [ "scenario_8", "0.75" ] // Scenario ID and detection tolerance
+            "args": [ "scenario_9", "1" ] // Scenario ID and detection tolerance
         }
     ]
 }
